@@ -1,0 +1,20 @@
+# Dependencias principales
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+Flask-CORS==4.0.0
+SQLAlchemy==2.0.23
+PyMySQL==1.1.0
+cryptography==41.0.5
+numpy==1.26.1
+bcrypt==4.0.1
+
+# Herramientas de desarrollo
+python-dotenv==1.0.0
+Flask-Migrate==4.0.5
+
+# Servidor de producción
+gunicorn==21.2.0
+
+# Para debug y testing
+pytest==7.4.3
+pytest-flask==1.2.0
