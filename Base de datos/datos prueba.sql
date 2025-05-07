@@ -8,9 +8,9 @@ VALUES
 
 INSERT INTO anchors (nombre, mac, canal_rf, activo)
 VALUES 
-('6A34', '34:6A:86:00:12:FF:5B:A3', '5', TRUE),
-('FF28', '28:FF:0C:01:7F:4E:22:19', '5', TRUE),
-('DA9C', '9C:DA:3E:FF:FE:80:23:4B', '5', TRUE);
+('5BA3', '34:6A:86:00:12:FF:5B:A3', '5', TRUE),
+('2219', '28:FF:0C:01:7F:4E:22:19', '5', TRUE),
+('234B', '9C:DA:3E:FF:FE:80:23:4B', '5', TRUE);
 
 -- Crear taller ficticio
 INSERT INTO talleres (nombre) VALUES ('Taller Central');
@@ -29,4 +29,4 @@ VALUES
 -- Crear vehículo y asociarlo al tag T0001
 -- Asegúrate de que el ID del tag T0001 sea 1 (o ajusta si no lo es)
 INSERT INTO vehiculos (matricula, bastidor, referencia, tag_id, estado)
-VALUES ('1234-ABC', 'VF7N1XYZ987654321', 'Citroën C3 gris', 1, 'activo');
+VALUES ('1255-ABC', 'VF7N1XYZ987654123', 'Citroën C4 azul', null, 'activo');

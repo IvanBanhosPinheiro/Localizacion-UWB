@@ -7,13 +7,13 @@ For ESP32 UWB or ESP32 UWB Pro
 #include <SPI.h>
 #include "DW1000Ranging.h"
 
-#define ANCHOR_ADD "9C:DA:3E:FF:FE:80:23:4B"
+#define ANCHOR_ADD "34:6A:86:00:12:FF:5B:A3"
 /*
-A01 » 34:6A:86:00:12:FF:5B:A3
+A01 » 34:6A:86:00:12:FF:5B:A3  en canal 5 coje los ultimos bytes 5BA3
 
-A02 » 28:FF:0C:01:7F:4E:22:19
+A02 » 28:FF:0C:01:7F:4E:22:19  en canal 2 coje los ultimos bytes 2219
 
-A03 » 9C:DA:3E:FF:FE:80:23:4B
+A03 » 9C:DA:3E:FF:FE:80:23:4B  en canal 7 coje los ultimos bytes 234B
 */
 
 #define SPI_SCK 18
@@ -42,7 +42,8 @@ void setup()
 
     //we start the module as an anchor
     // DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
-
+    // Configurar el canal antes de iniciar
+    DW1000.setChannel(5);
     DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
     // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_SHORTDATA_FAST_LOWPOWER);
     // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_FAST_LOWPOWER);

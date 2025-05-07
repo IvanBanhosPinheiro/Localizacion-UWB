@@ -192,7 +192,7 @@ def registrar_distancias():
         
         # Convertir distancia a número
         try:
-            distancia = float(anchor_data['distancia'])
+            distancia = float(anchor_data['distancia']) * 100  # Convertir a cm
         except ValueError:
             return jsonify({"error": f"La distancia debe ser un número válido para el anchor {anchor_data['shortAddres']}"}), 400
         
@@ -204,7 +204,7 @@ def registrar_distancias():
     # Verificar si ya existe una entrada de distancia para este tag
     distancia_existente = Distancia.query.filter_by(tag_id=tag.id).first()
     
-    # Verificar cambios significativos en distancias (1m de diferencia)
+    # Verificar cambios significativos en distancias (50 cm de diferencia)
     cambio_significativo = False
     if distancia_existente:
         distancias_anteriores = [
@@ -214,7 +214,7 @@ def registrar_distancias():
         ]
         
         for i, anchor_data in enumerate(anchors_data):
-            if i < len(distancias_anteriores) and abs(anchor_data['distancia'] - distancias_anteriores[i]) >= 1.0:
+            if i < len(distancias_anteriores) and abs(anchor_data['distancia'] - distancias_anteriores[i]) >= 50.0:
                 cambio_significativo = True
                 break
     else:
