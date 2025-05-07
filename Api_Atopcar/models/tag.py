@@ -12,8 +12,7 @@ class Tag(db.Model):
     ultima_comunicacion = db.Column(db.TIMESTAMP)
     observaciones = db.Column(db.Text)
     
-    # Relación con vehículo (uno a uno)
-    vehiculo = db.relationship('Vehiculo', backref=db.backref('tag', uselist=False), lazy=True)
+    vehiculo = db.relationship('Vehiculo', back_populates='tag', uselist=False)
     
     def __init__(self, codigo=None, mac=None, estado='libre', 
                  bateria=None, ultima_comunicacion=None, observaciones=None):

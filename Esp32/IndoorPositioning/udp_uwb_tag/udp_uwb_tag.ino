@@ -54,6 +54,9 @@ void setup()
     DW1000Ranging.attachInactiveDevice(inactiveDevice);
 
     DW1000Ranging.startAsTag("C8:2C:2A:FF:FE:11:06:5E", DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
+    //t1 C8:2C:2A:FF:FE:11:06:5E
+    //t2 C8:3C:2A:FF:FE:11:06:5E
+    //t3 C8:4C:2A:FF:FE:11:06:5E
 
     uwb_data = init_link();
     randomSeed(esp_random());

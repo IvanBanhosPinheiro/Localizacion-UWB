@@ -4,6 +4,7 @@ from models.distancia import Distancia
 from models.tag import Tag
 from models.anchor import Anchor
 from datetime import datetime
+from routes.posiciones import triangular_posicion 
 
 # Crear el blueprint para las distancias
 distancia_bp = Blueprint('distancias', __name__, url_prefix='/api/distancias')
@@ -81,6 +82,18 @@ def create_distancia():
     db.session.add(nueva_distancia)
     db.session.commit()
     
+    # Calcular y guardar la posición mediante triangulación
+    if (nueva_distancia.anchor1_id and nueva_distancia.anchor1_dist and
+        nueva_distancia.anchor2_id and nueva_distancia.anchor2_dist and
+        nueva_distancia.anchor3_id and nueva_distancia.anchor3_dist):
+        
+        triangular_posicion(
+            nueva_distancia.tag_id,
+            nueva_distancia.anchor1_id, nueva_distancia.anchor1_dist,
+            nueva_distancia.anchor2_id, nueva_distancia.anchor2_dist,
+            nueva_distancia.anchor3_id, nueva_distancia.anchor3_dist
+        )
+    
     return jsonify(nueva_distancia.to_dict()), 201
 
 # Actualizar una distancia
@@ -120,6 +133,18 @@ def update_distancia(id):
         distancia.anchor3_dist = data['anchor3_dist']
     
     db.session.commit()
+    
+    # Calcular y guardar la posición mediante triangulación
+    if (distancia.anchor1_id and distancia.anchor1_dist and
+        distancia.anchor2_id and distancia.anchor2_dist and
+        distancia.anchor3_id and distancia.anchor3_dist):
+        
+        triangular_posicion(
+            distancia.tag_id,
+            distancia.anchor1_id, distancia.anchor1_dist,
+            distancia.anchor2_id, distancia.anchor2_dist,
+            distancia.anchor3_id, distancia.anchor3_dist
+        )
     
     return jsonify(distancia.to_dict())
 
@@ -206,6 +231,15 @@ def registrar_distancias():
             distancia_existente.anchor3_id = anchors_data[2]['id']
             distancia_existente.anchor3_dist = anchors_data[2]['distancia']
             db.session.commit()
+            
+            #Triangular posición después de actualizar distancias
+            triangular_posicion(
+                tag.id,
+                distancia_existente.anchor1_id, distancia_existente.anchor1_dist,
+                distancia_existente.anchor2_id, distancia_existente.anchor2_dist,
+                distancia_existente.anchor3_id, distancia_existente.anchor3_dist
+            )
+            
             return jsonify({
                 "mensaje": "Distancias actualizadas correctamente",
                 "data": distancia_existente.to_dict()
@@ -229,6 +263,14 @@ def registrar_distancias():
         
         db.session.add(nueva_distancia)
         db.session.commit()
+        
+        #Triangular posición después de crear nueva distancia
+        triangular_posicion(
+            tag.id,
+            nueva_distancia.anchor1_id, nueva_distancia.anchor1_dist,
+            nueva_distancia.anchor2_id, nueva_distancia.anchor2_dist,
+            nueva_distancia.anchor3_id, nueva_distancia.anchor3_dist
+        )
         
         # También actualizamos la última comunicación del tag
         tag.ultima_comunicacion = datetime.utcnow()

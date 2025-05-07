@@ -9,14 +9,15 @@ class Vehiculo(db.Model):
     referencia = db.Column(db.String(100))
     estado = db.Column(db.String(20), default='activo')
     
-    # La relación con tag está definida en el modelo Tag
-    # tag = db.relationship('Tag', backref='vehiculo', uselist=False, lazy=True)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), unique=True)
+    tag = db.relationship('Tag', back_populates='vehiculo', uselist=False)
     
-    def __init__(self, matricula=None, bastidor=None, referencia=None, estado='activo'):
+    def __init__(self, matricula=None, bastidor=None, referencia=None, estado='activo', tag_id=None):
         self.matricula = matricula
         self.bastidor = bastidor
         self.referencia = referencia
         self.estado = estado
+        self.tag_id = tag_id
     
     def to_dict(self):
         return {
@@ -25,7 +26,7 @@ class Vehiculo(db.Model):
             'bastidor': self.bastidor,
             'referencia': self.referencia,
             'estado': self.estado,
-            'tag_id': self.tag.id if hasattr(self, 'tag') and self.tag else None
+            'tag_id': self.tag_id
         }
     
     def __repr__(self):

@@ -5,6 +5,9 @@ from models.tag import Tag
 from models.zona import Zona
 from sqlalchemy import desc
 from datetime import datetime, timedelta
+from models.anchor import Anchor
+import numpy as np
+import traceback
 
 # Crear el blueprint para las posiciones
 posicion_bp = Blueprint('posiciones', __name__, url_prefix='/api/posiciones')
@@ -124,3 +127,101 @@ def get_ultima_posicion(tag_id):
         return jsonify({"error": "No hay posiciones registradas para este tag"}), 404
     
     return jsonify(ultima_posicion.to_dict())
+
+
+
+# Función de triangulación (se puede llamar desde el módulo de distancias)
+def triangular_posicion(tag_id, anchor1_id, anchor1_dist, anchor2_id, anchor2_dist, anchor3_id, anchor3_dist):
+    try:
+        # Obtener las coordenadas de los anchors
+        anchor1 = Anchor.query.get(anchor1_id)
+        anchor2 = Anchor.query.get(anchor2_id)
+        anchor3 = Anchor.query.get(anchor3_id)
+        
+        if not (anchor1 and anchor2 and anchor3):
+            print(f"Error: No se encontraron todos los anchors ({anchor1_id}, {anchor2_id}, {anchor3_id})")
+            return None
+            
+        # Verificar que todas las coordenadas son válidas
+        if None in (anchor1.x, anchor1.y, anchor2.x, anchor2.y, anchor3.x, anchor3.y):
+            print("Error: Coordenadas de anchors nulas")
+            return None
+            
+        print(f"Anchor1 ({anchor1.nombre}): ({anchor1.x}, {anchor1.y}) dist: {anchor1_dist}")
+        print(f"Anchor2 ({anchor2.nombre}): ({anchor2.x}, {anchor2.y}) dist: {anchor2_dist}")
+        print(f"Anchor3 ({anchor3.nombre}): ({anchor3.x}, {anchor3.y}) dist: {anchor3_dist}")
+        
+        # Método basado en solución de ecuaciones lineales
+        # Ecuaciones para trilateración: 
+        # (x-x1)² + (y-y1)² = r1²
+        # (x-x2)² + (y-y2)² = r2²
+        # (x-x3)² + (y-y3)² = r3²
+        
+        # Restamos primera ecuación de las otras y resolvemos sistema lineal
+        A = np.array([
+            [2*(anchor2.x-anchor1.x), 2*(anchor2.y-anchor1.y)],
+            [2*(anchor3.x-anchor1.x), 2*(anchor3.y-anchor1.y)]
+        ])
+        
+        b = np.array([
+            pow(anchor1_dist, 2) - pow(anchor2_dist, 2) - pow(anchor1.x, 2) + pow(anchor2.x, 2) - pow(anchor1.y, 2) + pow(anchor2.y, 2),
+            pow(anchor1_dist, 2) - pow(anchor3_dist, 2) - pow(anchor1.x, 2) + pow(anchor3.x, 2) - pow(anchor1.y, 2) + pow(anchor3.y, 2)
+        ])
+        
+        try:
+            # Resolver sistema de ecuaciones
+            position = np.linalg.solve(A, b)
+            x, y = position[0], position[1]
+            
+            print(f"Posición calculada: ({x:.2f}, {y:.2f})")
+            
+            # Redondear a enteros para guardar en la base de datos
+            x_int, y_int = int(round(x)), int(round(y))
+            
+            # Determinar zona (simplemente usamos la zona del anchor más cercano)
+            zona_id = anchor1.zona_id
+            
+            # Crear nueva posición
+            nueva_posicion = Posicion(
+                tag_id=tag_id,
+                x=x_int,
+                y=y_int,
+                zona_id=zona_id
+            )
+            
+            db.session.add(nueva_posicion)
+            db.session.commit()
+            
+            return nueva_posicion
+            
+        except np.linalg.LinAlgError:
+            # Si el sistema no tiene solución única, usar método alternativo
+            print("No se pudo resolver el sistema de ecuaciones. Usando método alternativo...")
+            # Implementar método de minimización de errores aquí
+            
+            # Método simple: posición promedio ponderada por inverso de distancias
+            total_weight = 1/anchor1_dist + 1/anchor2_dist + 1/anchor3_dist
+            x = (anchor1.x/anchor1_dist + anchor2.x/anchor2_dist + anchor3.x/anchor3_dist) / total_weight
+            y = (anchor1.y/anchor1_dist + anchor2.y/anchor2_dist + anchor3.y/anchor3_dist) / total_weight
+            
+            x_int, y_int = int(round(x)), int(round(y))
+            
+            zona_id = anchor1.zona_id
+            
+            nueva_posicion = Posicion(
+                tag_id=tag_id,
+                x=x_int,
+                y=y_int,
+                zona_id=zona_id
+            )
+            
+            db.session.add(nueva_posicion)
+            db.session.commit()
+            
+            return nueva_posicion
+            
+    except Exception as e:
+        print(f"Error en triangulación: {str(e)}")
+        traceback.print_exc()  # Imprime el traceback completo
+        db.session.rollback()
+        return None
