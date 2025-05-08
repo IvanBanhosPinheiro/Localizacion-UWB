@@ -17,7 +17,7 @@
 
 const char *ssid = "UWB-WIFI";
 const char *password = "12345678";
-String tagID = "T0001";
+String tagID = "T0002";
 
 struct MyLink *uwb_data;
 String all_json = "";
@@ -89,7 +89,7 @@ void iniciarUWB() {
     DW1000Ranging.attachNewRange(newRange);
     DW1000Ranging.attachNewDevice(newDevice);
     DW1000Ranging.attachInactiveDevice(inactiveDevice);
-    DW1000Ranging.startAsTag("C8:2C:2A:FF:FE:11:06:5E", DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
+    DW1000Ranging.startAsTag("C7:3C:2A:FF:FE:11:03:4A", DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
     uwbActivo = true;
 }
 

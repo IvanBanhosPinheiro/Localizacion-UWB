@@ -15,8 +15,8 @@
       const res = await fetch("http://localhost:5000/api/posiciones/tag/1/ultima"); // cambia el ID si es necesario
       const data = await res.json();
 
-      const escalaX = 6; // por ejemplo: si el eje x va de 0 a 10 → 600 / 10
-      const escalaY = 4; // por ejemplo: si el eje y va de 0 a 10 → 400 / 10
+      const escalaX = 4.28; // por ejemplo: si el eje x va de 0 a 10 → 600 / 100
+      const escalaY = 2; // por ejemplo: si el eje y va de 0 a 10 → 400 / 100
       const altoSVG = 400;
 
       const x = data.x * escalaX;

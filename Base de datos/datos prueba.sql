@@ -3,8 +3,8 @@ USE atopcar;
 INSERT INTO tags (codigo, mac, estado, bateria, ultima_comunicacion, observaciones)
 VALUES 
 ('T0001', 'C8:2C:2A:FF:FE:11:06:5E', 'libre', 100, NOW(), 'Tag operativo, asignado a 6A34'),
-('T0002', 'C8:3C:2A:FF:FE:11:06:5E', 'libre', 100, NOW(), 'Tag operativo, asignado a FF28'),
-('T0003', 'C8:4C:2A:FF:FE:11:06:5E', 'libre', 100, NOW(), 'Tag operativo, asignado a DA9C');
+('T0002', 'C7:3C:2A:FF:FE:11:03:4A', 'libre', 100, NOW(), 'Tag operativo, asignado a FF28'),
+('T0003', 'C6:4C:2A:FF:FE:11:16:2B', 'libre', 100, NOW(), 'Tag operativo, asignado a DA9C');
 
 INSERT INTO anchors (nombre, mac, canal_rf, activo)
 VALUES 
