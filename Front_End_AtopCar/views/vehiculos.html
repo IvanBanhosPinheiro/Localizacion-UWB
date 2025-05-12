@@ -1,0 +1,60 @@
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Vehículos</h2>
+      <button class="btn btn-primary" id="btnNuevoVehiculo">
+        <i class="fas fa-plus"></i> Novo Vehículo
+      </button>
+    </div>
+  
+    <table id="tablaVehiculos" class="table table-striped" style="width:100%">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Matrícula</th>
+          <th>Referencia</th>
+          <th>Estado</th>
+          <th>Tag asignado</th>
+          <th>Accións</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  
+  <!-- Modal para crear/editar vehículo -->
+  <div class="modal fade" id="modalVehiculo" tabindex="-1" aria-labelledby="modalVehiculoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="formVehiculo">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalVehiculoLabel">Vehículo</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="vehiculoId">
+            <div class="mb-3">
+              <label class="form-label">Matrícula</label>
+              <input type="text" class="form-control" id="matricula" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Referencia</label>
+              <input type="text" class="form-control" id="referencia">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Estado</label>
+              <select class="form-select" id="estado">
+                <option value="activo">Activo</option>
+                <option value="entregado">Entregado</option>
+                <option value="baja">Baixa</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Gardar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
