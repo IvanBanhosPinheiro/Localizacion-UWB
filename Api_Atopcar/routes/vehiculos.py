@@ -2,12 +2,43 @@ from flask import Blueprint, request, jsonify
 from extensions import db
 from models.vehiculo import Vehiculo
 from models.tag import Tag
+from flasgger import swag_from
 
 # Crear el blueprint para los vehículos
 vehiculo_bp = Blueprint('vehiculos', __name__, url_prefix='/api/vehiculos')
 
 # Obtener todos los vehículos
 @vehiculo_bp.route('/', methods=['GET'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Obtener todos los vehículos',
+    'description': 'Recupera la lista completa de vehículos con opciones de filtrado',
+    'parameters': [
+        {
+            'name': 'estado',
+            'in': 'query',
+            'type': 'string',
+            'required': False,
+            'description': 'Filtrar por estado (activo, pendiente, finalizado, entregado)'
+        },
+        {
+            'name': 'con_tag',
+            'in': 'query',
+            'type': 'boolean',
+            'required': False,
+            'description': 'Filtrar vehículos con o sin tag asignado (true/false)'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de vehículos',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Vehiculo'}
+            }
+        }
+    }
+})
 def get_all_vehiculos():
     # Filtrar por estado si se especifica
     estado = request.args.get('estado')
@@ -33,12 +64,71 @@ def get_all_vehiculos():
 
 # Obtener un vehículo específico
 @vehiculo_bp.route('/<int:id>', methods=['GET'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Obtener un vehículo específico',
+    'description': 'Recupera los detalles de un vehículo por su ID',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del vehículo'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Detalles del vehículo',
+            'schema': {'$ref': '#/definitions/Vehiculo'}
+        },
+        404: {
+            'description': 'Vehículo no encontrado'
+        }
+    }
+})
 def get_vehiculo(id):
     vehiculo = Vehiculo.query.get_or_404(id)
     return jsonify(vehiculo.to_dict())
 
 # Crear un nuevo vehículo
 @vehiculo_bp.route('/', methods=['POST'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Crear un nuevo vehículo',
+    'description': 'Registra un nuevo vehículo en el sistema',
+    'parameters': [
+        {
+            'name': 'vehiculo',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'matricula': {'type': 'string', 'description': 'Matrícula o placa del vehículo'},
+                    'bastidor': {'type': 'string', 'description': 'Número de bastidor o VIN único del vehículo'},
+                    'referencia': {'type': 'string', 'description': 'Referencia interna o descripción del vehículo'},
+                    'estado': {'type': 'string', 'description': 'Estado del vehículo', 'enum': ['activo', 'pendiente', 'finalizado', 'entregado'], 'default': 'activo'}
+                },
+                'example': {
+                    'matricula': '1234ABC',
+                    'bastidor': 'VF12345678',
+                    'referencia': 'Seat Ibiza azul',
+                    'estado': 'activo'
+                }
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Vehículo creado exitosamente',
+            'schema': {'$ref': '#/definitions/Vehiculo'}
+        },
+        400: {
+            'description': 'Error en los datos enviados o bastidor duplicado'
+        }
+    }
+})
 def create_vehiculo():
     data = request.json
     
@@ -64,6 +154,46 @@ def create_vehiculo():
 
 # Actualizar un vehículo
 @vehiculo_bp.route('/<int:id>', methods=['PUT'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Actualizar un vehículo existente',
+    'description': 'Modifica los datos de un vehículo específico',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del vehículo a modificar'
+        },
+        {
+            'name': 'vehiculo',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'matricula': {'type': 'string', 'description': 'Matrícula o placa del vehículo'},
+                    'bastidor': {'type': 'string', 'description': 'Número de bastidor o VIN único del vehículo'},
+                    'referencia': {'type': 'string', 'description': 'Referencia interna o descripción del vehículo'},
+                    'estado': {'type': 'string', 'description': 'Estado del vehículo', 'enum': ['activo', 'pendiente', 'finalizado', 'entregado']}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Vehículo actualizado correctamente',
+            'schema': {'$ref': '#/definitions/Vehiculo'}
+        },
+        400: {
+            'description': 'Error en los datos enviados o bastidor duplicado'
+        },
+        404: {
+            'description': 'Vehículo no encontrado'
+        }
+    }
+})
 def update_vehiculo(id):
     vehiculo = Vehiculo.query.get_or_404(id)
     data = request.json
@@ -89,6 +219,31 @@ def update_vehiculo(id):
 
 # Eliminar un vehículo
 @vehiculo_bp.route('/<int:id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Eliminar un vehículo',
+    'description': 'Elimina permanentemente un vehículo del sistema (siempre que no tenga tag asignado)',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del vehículo a eliminar'
+        }
+    ],
+    'responses': {
+        204: {
+            'description': 'Vehículo eliminado correctamente (sin contenido)'
+        },
+        400: {
+            'description': 'No se puede eliminar el vehículo porque tiene un tag asignado'
+        },
+        404: {
+            'description': 'Vehículo no encontrado'
+        }
+    }
+})
 def delete_vehiculo(id):
     vehiculo = Vehiculo.query.get_or_404(id)
     
@@ -103,6 +258,44 @@ def delete_vehiculo(id):
 
 # Cambiar el estado de un vehículo
 @vehiculo_bp.route('/<int:id>/estado', methods=['PUT'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Cambiar el estado de un vehículo',
+    'description': 'Actualiza el estado de un vehículo (activo, entregado, baja)',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del vehículo'
+        },
+        {
+            'name': 'data',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'estado': {'type': 'string', 'description': 'Nuevo estado del vehículo', 'enum': ['activo', 'entregado', 'baja']}
+                },
+                'required': ['estado']
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Estado actualizado correctamente',
+            'schema': {'$ref': '#/definitions/Vehiculo'}
+        },
+        400: {
+            'description': 'Estado no válido o falta el estado'
+        },
+        404: {
+            'description': 'Vehículo no encontrado'
+        }
+    }
+})
 def cambiar_estado(id):
     vehiculo = Vehiculo.query.get_or_404(id)
     data = request.json
@@ -121,6 +314,29 @@ def cambiar_estado(id):
 
 # Obtener el tag asociado a un vehículo
 @vehiculo_bp.route('/<int:id>/tag', methods=['GET'])
+@swag_from({
+    'tags': ['vehiculos', 'tags'],
+    'summary': 'Obtener tag asociado a un vehículo',
+    'description': 'Recupera la información del tag UWB asociado a un vehículo específico',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del vehículo'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Información del tag',
+            'schema': {'$ref': '#/definitions/Tag'}
+        },
+        404: {
+            'description': 'Vehículo no encontrado o no tiene tag asignado'
+        }
+    }
+})
 def get_vehiculo_tag(id):
     vehiculo = Vehiculo.query.get_or_404(id)
     
@@ -131,6 +347,32 @@ def get_vehiculo_tag(id):
 
 # Buscar vehículos por matrícula o bastidor
 @vehiculo_bp.route('/buscar', methods=['GET'])
+@swag_from({
+    'tags': ['vehiculos'],
+    'summary': 'Buscar vehículos',
+    'description': 'Busca vehículos por matrícula, bastidor o referencia',
+    'parameters': [
+        {
+            'name': 'termino',
+            'in': 'query',
+            'type': 'string',
+            'required': True,
+            'description': 'Término de búsqueda (matrícula, bastidor o referencia)'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de vehículos coincidentes',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Vehiculo'}
+            }
+        },
+        400: {
+            'description': 'Término de búsqueda no especificado'
+        }
+    }
+})
 def buscar_vehiculo():
     termino = request.args.get('termino')
     

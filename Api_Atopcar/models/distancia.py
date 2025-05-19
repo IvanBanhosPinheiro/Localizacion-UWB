@@ -1,6 +1,38 @@
 from extensions import db
 
 class Distancia(db.Model):
+    """
+    Modelo Distancia para almacenar mediciones de distancia entre tags móviles y anchors fijos
+    ---
+    properties:
+    id:
+        type: integer
+        description: Identificador único del registro de distancia
+    tag_id:
+        type: integer
+        description: ID del tag UWB móvil desde el que se realizan las mediciones
+    anchor1_id:
+        type: integer
+        description: ID del primer anchor de referencia
+    anchor1_dist:
+        type: number
+        format: float
+        description: Distancia en metros entre el tag y el primer anchor
+    anchor2_id:
+        type: integer
+        description: ID del segundo anchor de referencia
+    anchor2_dist:
+        type: number
+        format: float
+        description: Distancia en metros entre el tag y el segundo anchor
+    anchor3_id:
+        type: integer
+        description: ID del tercer anchor de referencia
+    anchor3_dist:
+        type: number
+        format: float
+        description: Distancia en metros entre el tag y el tercer anchor
+    """
     __tablename__ = 'distancias'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

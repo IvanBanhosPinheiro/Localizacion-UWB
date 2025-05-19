@@ -4,12 +4,43 @@ from models.zona import Zona
 from models.taller import Taller
 from models.anchor import Anchor
 from models.posicion import Posicion
+from flasgger import swag_from
 
 # Crear el blueprint para las zonas
 zona_bp = Blueprint('zonas', __name__, url_prefix='/api/zonas')
 
 # Obtener todas las zonas
 @zona_bp.route('/', methods=['GET'])
+@swag_from({
+    'tags': ['zonas'],
+    'summary': 'Obtener todas las zonas',
+    'description': 'Recupera la lista completa de zonas con opciones de filtrado',
+    'parameters': [
+        {
+            'name': 'taller_id',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por ID del taller'
+        },
+        {
+            'name': 'tipo',
+            'in': 'query',
+            'type': 'string',
+            'required': False,
+            'description': 'Filtrar por tipo de zona'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de zonas',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Zona'}
+            }
+        }
+    }
+})
 def get_all_zonas():
     # Filtrar por taller_id si se especifica
     taller_id = request.args.get('taller_id', type=int)
@@ -28,12 +59,66 @@ def get_all_zonas():
 
 # Obtener una zona específica
 @zona_bp.route('/<int:id>', methods=['GET'])
+@swag_from({
+    'tags': ['zonas'],
+    'summary': 'Obtener una zona específica',
+    'description': 'Recupera los detalles de una zona por su ID',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la zona'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Detalles de la zona',
+            'schema': {'$ref': '#/definitions/Zona'}
+        },
+        404: {
+            'description': 'Zona no encontrada'
+        }
+    }
+})
 def get_zona(id):
     zona = Zona.query.get_or_404(id)
     return jsonify(zona.to_dict())
 
 # Crear una nueva zona
 @zona_bp.route('/', methods=['POST'])
+@swag_from({
+    'tags': ['zonas'],
+    'summary': 'Crear una nueva zona',
+    'description': 'Registra una nueva zona en el sistema',
+    'parameters': [
+        {
+            'name': 'zona',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nombre': {'type': 'string', 'description': 'Nombre descriptivo de la zona'},
+                    'tipo': {'type': 'string', 'description': 'Clasificación de la zona (recepción, taller, pintura, etc.)'},
+                    'color_hex': {'type': 'string', 'description': 'Código de color hexadecimal para representar la zona'},
+                    'taller_id': {'type': 'integer', 'description': 'ID del taller al que pertenece esta zona'}
+                },
+                'required': ['nombre']
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Zona creada exitosamente',
+            'schema': {'$ref': '#/definitions/Zona'}
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def create_zona():
     data = request.json
     
@@ -59,6 +144,46 @@ def create_zona():
 
 # Actualizar una zona
 @zona_bp.route('/<int:id>', methods=['PUT'])
+@swag_from({
+    'tags': ['zonas'],
+    'summary': 'Actualizar una zona existente',
+    'description': 'Modifica los datos de una zona específica',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la zona a modificar'
+        },
+        {
+            'name': 'zona',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nombre': {'type': 'string', 'description': 'Nombre descriptivo de la zona'},
+                    'tipo': {'type': 'string', 'description': 'Clasificación de la zona (recepción, taller, pintura, etc.)'},
+                    'color_hex': {'type': 'string', 'description': 'Código de color hexadecimal para representar la zona'},
+                    'taller_id': {'type': 'integer', 'description': 'ID del taller al que pertenece esta zona'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Zona actualizada correctamente',
+            'schema': {'$ref': '#/definitions/Zona'}
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        },
+        404: {
+            'description': 'Zona no encontrada'
+        }
+    }
+})
 def update_zona(id):
     zona = Zona.query.get_or_404(id)
     data = request.json
@@ -83,6 +208,31 @@ def update_zona(id):
 
 # Eliminar una zona
 @zona_bp.route('/<int:id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['zonas'],
+    'summary': 'Eliminar una zona',
+    'description': 'Elimina permanentemente una zona del sistema',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la zona a eliminar'
+        }
+    ],
+    'responses': {
+        204: {
+            'description': 'Zona eliminada correctamente (sin contenido)'
+        },
+        400: {
+            'description': 'No se puede eliminar la zona porque tiene elementos asociados'
+        },
+        404: {
+            'description': 'Zona no encontrada'
+        }
+    }
+})
 def delete_zona(id):
     zona = Zona.query.get_or_404(id)
     
@@ -103,6 +253,39 @@ def delete_zona(id):
 
 # Obtener todos los anchors de una zona
 @zona_bp.route('/<int:id>/anchors', methods=['GET'])
+@swag_from({
+    'tags': ['zonas', 'anchors'],
+    'summary': 'Obtener anchors de una zona',
+    'description': 'Recupera todos los dispositivos UWB fijos instalados en una zona específica',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la zona'
+        },
+        {
+            'name': 'activo',
+            'in': 'query',
+            'type': 'boolean',
+            'required': False,
+            'description': 'Filtrar por estado activo/inactivo (true/false)'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de anchors en la zona',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Anchor'}
+            }
+        },
+        404: {
+            'description': 'Zona no encontrada'
+        }
+    }
+})
 def get_zona_anchors(id):
     # Verificar que la zona existe
     Zona.query.get_or_404(id)
@@ -121,6 +304,46 @@ def get_zona_anchors(id):
 
 # Obtener estadísticas de la zona
 @zona_bp.route('/<int:id>/stats', methods=['GET'])
+@swag_from({
+    'tags': ['zonas'],
+    'summary': 'Obtener estadísticas de una zona',
+    'description': 'Recupera información estadística sobre una zona específica',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la zona'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Estadísticas de la zona',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer', 'description': 'ID de la zona'},
+                    'nombre': {'type': 'string', 'description': 'Nombre de la zona'},
+                    'tipo': {'type': 'string', 'description': 'Tipo de zona'},
+                    'taller_id': {'type': 'integer', 'description': 'ID del taller'},
+                    'anchors': {
+                        'type': 'object',
+                        'properties': {
+                            'total': {'type': 'integer', 'description': 'Número total de anchors'},
+                            'activos': {'type': 'integer', 'description': 'Número de anchors activos'},
+                            'inactivos': {'type': 'integer', 'description': 'Número de anchors inactivos'}
+                        }
+                    },
+                    'posiciones_24h': {'type': 'integer', 'description': 'Número de posiciones registradas en las últimas 24 horas'}
+                }
+            }
+        },
+        404: {
+            'description': 'Zona no encontrada'
+        }
+    }
+})
 def get_zona_stats(id):
     zona = Zona.query.get_or_404(id)
     

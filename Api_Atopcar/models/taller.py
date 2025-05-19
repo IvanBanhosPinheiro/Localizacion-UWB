@@ -2,6 +2,24 @@ from extensions import db
 from datetime import datetime
 
 class Taller(db.Model):
+    """
+    Modelo Taller para representar los espacios físicos donde se realiza el seguimiento UWB
+    ---
+    properties:
+    id:
+        type: integer
+        description: Identificador único del taller
+    nombre:
+        type: string
+        description: Nombre del taller o instalación
+    svg_plano:
+        type: string
+        description: Representación SVG del plano del taller
+    creado_en:
+        type: string
+        format: date-time
+        description: Fecha y hora de registro del taller en el sistema
+    """
     __tablename__ = 'talleres'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

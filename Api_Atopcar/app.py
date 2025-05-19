@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from extensions import db, migrate, cors
+from flasgger import Swagger
 
 def create_app():
     # Inicializar la aplicación Flask
@@ -11,6 +12,40 @@ def create_app():
     app.config['SECRET_KEY'] = 'clave_secreta_para_desarrollo'
     app.config['JSON_SORT_KEYS'] = False
 
+    
+    # Configuración mejorada de Swagger
+    app.config['SWAGGER'] = {
+        'title': 'API Atopcar',
+        'version': '1.0',
+        'description': 'API para el sistema de localización UWB en tiempo real',
+        'uiversion': 3,
+        'tags': [
+            {'name': 'usuarios', 'description': 'Operaciones de usuarios'},
+            {'name': 'talleres', 'description': 'Gestión de talleres'},
+            {'name': 'zonas', 'description': 'Zonas dentro de los talleres'},
+            {'name': 'anchors', 'description': 'Puntos fijos de referencia UWB'},
+            {'name': 'tags', 'description': 'Dispositivos UWB móviles'},
+            {'name': 'vehiculos', 'description': 'Información de vehículos'},
+            {'name': 'posiciones', 'description': 'Registros de posicionamiento'},
+            {'name': 'distancias', 'description': 'Mediciones entre dispositivos'},
+            {'name': 'alertas', 'description': 'Sistema de notificaciones'},
+        ],
+        'specs': [
+            {
+                'endpoint': 'apispec',
+                'route': '/apispec.json',
+                'rule_filter': lambda rule: True,  # all in
+                'model_filter': lambda tag: True,  # all in
+            }
+        ],
+        'static_url_path': '/flasgger_static',
+        'swagger_ui': True,
+        'specs_route': '/apidocs/'
+    }
+    
+    # Inicializar Swagger 
+    swagger = Swagger(app)
+    
     # Inicializar extensiones con app
     db.init_app(app)
     migrate.init_app(app, db)
@@ -66,6 +101,26 @@ def create_app():
     # Ruta inicial para probar que la API funciona
     @app.route('/')
     def index():
+        """
+        Endpoint principal de la API
+        ---
+        responses:
+          200:
+            description: Información general de la API
+            schema:
+              properties:
+                mensaje:
+                  type: string
+                  example: API Atopcar funcionando correctamente
+                version:
+                  type: string
+                  example: 1.0
+                endpoints:
+                  type: array
+                  items:
+                    type: string
+                    example: /api/usuarios
+        """
         return jsonify({
             'mensaje': 'API Atopcar funcionando correctamente',
             'version': '1.0',

@@ -1,6 +1,38 @@
 from extensions import db
 
 class Anchor(db.Model):
+    """
+    Modelo Anchor para dispositivos UWB fijos que sirven como puntos de referencia
+    ---
+    properties:
+      id:
+        type: integer
+        description: Identificador único del anchor
+      nombre:
+        type: string
+        description: Nombre descriptivo del anchor
+      mac:
+        type: string
+        description: Dirección MAC única del dispositivo UWB
+      x:
+        type: integer
+        description: Coordenada X de la posición del anchor en el plano del taller
+      y:
+        type: integer
+        description: Coordenada Y de la posición del anchor en el plano del taller
+      canal_rf:
+        type: string
+        description: Canal de radiofrecuencia en el que opera el dispositivo
+      zona_id:
+        type: integer
+        description: ID de la zona donde está instalado el anchor
+      taller_id:
+        type: integer
+        description: ID del taller donde está instalado el anchor
+      activo:
+        type: boolean
+        description: Indica si el anchor está operativo actualmente
+    """
     __tablename__ = 'anchors'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

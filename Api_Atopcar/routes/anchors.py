@@ -3,12 +3,50 @@ from extensions import db
 from models.anchor import Anchor
 from models.taller import Taller
 from models.zona import Zona
+from flasgger import swag_from
 
 # Crear el blueprint para los anchors
 anchor_bp = Blueprint('anchors', __name__, url_prefix='/api/anchors')
 
 # Obtener todos los anchors
 @anchor_bp.route('/', methods=['GET'])
+@swag_from({
+    'tags': ['anchors'],
+    'summary': 'Obtener todos los anchors',
+    'description': 'Recupera la lista de todos los dispositivos UWB fijos con opciones de filtrado',
+    'parameters': [
+        {
+            'name': 'taller_id',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por ID del taller'
+        },
+        {
+            'name': 'zona_id',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por ID de zona'
+        },
+        {
+            'name': 'activo',
+            'in': 'query',
+            'type': 'boolean',
+            'required': False,
+            'description': 'Filtrar por estado activo/inactivo (true/false)'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de anchors',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Anchor'}
+            }
+        }
+    }
+})
 def get_all_anchors():
     # Filtrar por taller_id si se proporciona
     taller_id = request.args.get('taller_id', type=int)
@@ -32,12 +70,70 @@ def get_all_anchors():
 
 # Obtener un anchor específico
 @anchor_bp.route('/<int:id>', methods=['GET'])
+@swag_from({
+    'tags': ['anchors'],
+    'summary': 'Obtener un anchor específico',
+    'description': 'Recupera los detalles de un dispositivo UWB fijo por su ID',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del anchor'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Detalles del anchor',
+            'schema': {'$ref': '#/definitions/Anchor'}
+        },
+        404: {
+            'description': 'Anchor no encontrado'
+        }
+    }
+})
 def get_anchor(id):
     anchor = Anchor.query.get_or_404(id)
     return jsonify(anchor.to_dict())
 
 # Crear un nuevo anchor
 @anchor_bp.route('/', methods=['POST'])
+@swag_from({
+    'tags': ['anchors'],
+    'summary': 'Crear un nuevo anchor',
+    'description': 'Registra un nuevo dispositivo UWB fijo en el sistema',
+    'parameters': [
+        {
+            'name': 'anchor',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nombre': {'type': 'string', 'description': 'Nombre descriptivo del anchor'},
+                    'mac': {'type': 'string', 'description': 'Dirección MAC única del dispositivo'},
+                    'x': {'type': 'integer', 'description': 'Coordenada X en el plano del taller'},
+                    'y': {'type': 'integer', 'description': 'Coordenada Y en el plano del taller'},
+                    'canal_rf': {'type': 'string', 'description': 'Canal de radiofrecuencia'},
+                    'zona_id': {'type': 'integer', 'description': 'ID de la zona donde está instalado'},
+                    'taller_id': {'type': 'integer', 'description': 'ID del taller donde está instalado'},
+                    'activo': {'type': 'boolean', 'description': 'Estado operativo del anchor', 'default': True}
+                },
+                'required': ['mac']
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Anchor creado exitosamente',
+            'schema': {'$ref': '#/definitions/Anchor'}
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def create_anchor():
     data = request.json
     
@@ -70,6 +166,50 @@ def create_anchor():
 
 # Actualizar un anchor
 @anchor_bp.route('/<int:id>', methods=['PUT'])
+@swag_from({
+    'tags': ['anchors'],
+    'summary': 'Actualizar un anchor existente',
+    'description': 'Modifica los datos de un dispositivo UWB fijo',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del anchor a modificar'
+        },
+        {
+            'name': 'anchor',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nombre': {'type': 'string', 'description': 'Nombre descriptivo del anchor'},
+                    'mac': {'type': 'string', 'description': 'Dirección MAC única del dispositivo'},
+                    'x': {'type': 'integer', 'description': 'Coordenada X en el plano del taller'},
+                    'y': {'type': 'integer', 'description': 'Coordenada Y en el plano del taller'},
+                    'canal_rf': {'type': 'string', 'description': 'Canal de radiofrecuencia'},
+                    'zona_id': {'type': 'integer', 'description': 'ID de la zona donde está instalado'},
+                    'taller_id': {'type': 'integer', 'description': 'ID del taller donde está instalado'},
+                    'activo': {'type': 'boolean', 'description': 'Estado operativo del anchor'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Anchor actualizado correctamente',
+            'schema': {'$ref': '#/definitions/Anchor'}
+        },
+        404: {
+            'description': 'Anchor no encontrado'
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def update_anchor(id):
     anchor = Anchor.query.get_or_404(id)
     data = request.json
@@ -110,6 +250,28 @@ def update_anchor(id):
 
 # Eliminar un anchor
 @anchor_bp.route('/<int:id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['anchors'],
+    'summary': 'Eliminar un anchor',
+    'description': 'Elimina permanentemente un dispositivo UWB fijo del sistema',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del anchor a eliminar'
+        }
+    ],
+    'responses': {
+        204: {
+            'description': 'Anchor eliminado correctamente (sin contenido)'
+        },
+        404: {
+            'description': 'Anchor no encontrado'
+        }
+    }
+})
 def delete_anchor(id):
     anchor = Anchor.query.get_or_404(id)
     db.session.delete(anchor)
@@ -119,6 +281,29 @@ def delete_anchor(id):
 
 # Activar/desactivar un anchor
 @anchor_bp.route('/<int:id>/toggle-activo', methods=['PUT'])
+@swag_from({
+    'tags': ['anchors'],
+    'summary': 'Activar/desactivar un anchor',
+    'description': 'Cambia el estado de activación de un anchor (on/off)',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del anchor a cambiar su estado'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Estado del anchor modificado correctamente',
+            'schema': {'$ref': '#/definitions/Anchor'}
+        },
+        404: {
+            'description': 'Anchor no encontrado'
+        }
+    }
+})
 def toggle_activo(id):
     anchor = Anchor.query.get_or_404(id)
     anchor.activo = not anchor.activo

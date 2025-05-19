@@ -2,6 +2,37 @@ from extensions import db
 from datetime import datetime
 
 class Tag(db.Model):
+    """
+    Modelo Tag para dispositivos UWB móviles que se asocian a vehículos
+    ---
+    properties:
+    id:
+        type: integer
+        description: Identificador único del tag
+    codigo:
+        type: string
+        description: Código único de identificación del tag
+    mac:
+        type: string
+        description: Dirección MAC única del dispositivo UWB
+    estado:
+        type: string
+        description: Estado actual del tag
+        enum: [libre, asignado, averiado, baja, mantenimiento]
+    bateria:
+        type: integer
+        description: Nivel de batería del dispositivo (porcentaje)
+    ultima_comunicacion:
+        type: string
+        format: date-time
+        description: Fecha y hora de la última comunicación recibida
+    observaciones:
+        type: string
+        description: Notas adicionales sobre el tag
+    vehiculo_id:
+        type: integer
+        description: ID del vehículo al que está asociado (si aplica)
+    """
     __tablename__ = 'tags'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

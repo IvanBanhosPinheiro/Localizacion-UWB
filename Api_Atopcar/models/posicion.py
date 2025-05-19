@@ -2,6 +2,30 @@ from extensions import db
 from datetime import datetime
 
 class Posicion(db.Model):
+    """
+    Modelo Posicion para registrar las ubicaciones de los tags UWB dentro del taller
+    ---
+    properties:
+    id:
+        type: integer
+        description: Identificador único del registro de posición
+    tag_id:
+        type: integer
+        description: ID del tag UWB cuya posición se está registrando
+    x:
+        type: integer
+        description: Coordenada X en el plano del taller (en centímetros)
+    y:
+        type: integer
+        description: Coordenada Y en el plano del taller (en centímetros)
+    zona_id:
+        type: integer
+        description: ID de la zona donde se encuentra el tag
+    timestamp:
+        type: string
+        format: date-time
+        description: Fecha y hora en que se registró la posición
+    """
     __tablename__ = 'posiciones'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

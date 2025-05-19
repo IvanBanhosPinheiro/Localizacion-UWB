@@ -1,6 +1,30 @@
 from extensions import db
 
 class Vehiculo(db.Model):
+    """
+    Modelo Vehiculo para gestionar los vehículos que se localizan dentro del taller
+    ---
+    properties:
+      id:
+        type: integer
+        description: Identificador único del vehículo
+      matricula:
+        type: string
+        description: Matrícula o placa del vehículo
+      bastidor:
+        type: string
+        description: Número de bastidor o VIN único del vehículo
+      referencia:
+        type: string
+        description: Referencia interna o descripción del vehículo
+      estado:
+        type: string
+        description: Estado actual del vehículo en el taller
+        enum: [activo, pendiente, finalizado, entregado]
+      tag_id:
+        type: integer
+        description: ID del tag UWB asociado al vehículo para su localización
+    """
     __tablename__ = 'vehiculos'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

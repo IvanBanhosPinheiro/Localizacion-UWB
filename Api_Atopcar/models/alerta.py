@@ -2,6 +2,34 @@ from extensions import db
 from datetime import datetime
 
 class Alerta(db.Model):
+    """
+    Modelo Alerta para la gestión de notificaciones del sistema
+    ---
+    properties:
+      id:
+        type: integer
+        description: Identificador único de la alerta
+      tag_id:
+        type: integer
+        description: ID del tag UWB asociado a esta alerta
+      vehiculo_id:
+        type: integer
+        description: ID del vehículo asociado a esta alerta
+      tipo:
+        type: string
+        description: Categoría de la alerta (batería baja, fuera de zona, etc.)
+        enum: [bateria_baja, fuera_de_zona, movimiento_no_autorizado, averia, otros]
+      descripcion:
+        type: string
+        description: Detalles adicionales sobre la alerta
+      timestamp:
+        type: string
+        format: date-time
+        description: Fecha y hora cuando se generó la alerta
+      leido:
+        type: boolean
+        description: Indica si la alerta ha sido revisada por un usuario
+    """
     __tablename__ = 'alertas'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

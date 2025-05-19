@@ -8,12 +8,58 @@ from datetime import datetime, timedelta
 from models.anchor import Anchor
 import numpy as np
 import traceback
+from flasgger import swag_from
 
 # Crear el blueprint para las posiciones
 posicion_bp = Blueprint('posiciones', __name__, url_prefix='/api/posiciones')
 
 # Obtener todas las posiciones
 @posicion_bp.route('/', methods=['GET'])
+@swag_from({
+    'tags': ['posiciones'],
+    'summary': 'Obtener todas las posiciones',
+    'description': 'Recupera la lista de posiciones registradas con opciones de filtrado',
+    'parameters': [
+        {
+            'name': 'tag_id',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por ID del tag'
+        },
+        {
+            'name': 'zona_id',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por ID de la zona'
+        },
+        {
+            'name': 'hours',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por últimas N horas'
+        },
+        {
+            'name': 'limit',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'default': 100,
+            'description': 'Límite de resultados a devolver'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de posiciones',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Posicion'}
+            }
+        }
+    }
+})
 def get_all_posiciones():
     # Filtrar por tag_id
     tag_id = request.args.get('tag_id', type=int)
@@ -42,12 +88,66 @@ def get_all_posiciones():
 
 # Obtener una posición específica
 @posicion_bp.route('/<int:id>', methods=['GET'])
+@swag_from({
+    'tags': ['posiciones'],
+    'summary': 'Obtener una posición específica',
+    'description': 'Recupera los detalles de una posición por su ID',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la posición'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Detalles de la posición',
+            'schema': {'$ref': '#/definitions/Posicion'}
+        },
+        404: {
+            'description': 'Posición no encontrada'
+        }
+    }
+})
 def get_posicion(id):
     posicion = Posicion.query.get_or_404(id)
     return jsonify(posicion.to_dict())
 
 # Crear una nueva posición
 @posicion_bp.route('/', methods=['POST'])
+@swag_from({
+    'tags': ['posiciones'],
+    'summary': 'Crear una nueva posición',
+    'description': 'Registra una nueva posición para un tag',
+    'parameters': [
+        {
+            'name': 'posicion',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'tag_id': {'type': 'integer', 'description': 'ID del tag UWB'},
+                    'x': {'type': 'integer', 'description': 'Coordenada X en el plano del taller (cm)'},
+                    'y': {'type': 'integer', 'description': 'Coordenada Y en el plano del taller (cm)'},
+                    'zona_id': {'type': 'integer', 'description': 'ID de la zona donde se encuentra el tag'}
+                },
+                'required': ['tag_id', 'x', 'y']
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Posición creada exitosamente',
+            'schema': {'$ref': '#/definitions/Posicion'}
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def create_posicion():
     data = request.json
     
@@ -79,6 +179,46 @@ def create_posicion():
 
 # Actualizar una posición
 @posicion_bp.route('/<int:id>', methods=['PUT'])
+@swag_from({
+    'tags': ['posiciones'],
+    'summary': 'Actualizar una posición',
+    'description': 'Modifica los datos de una posición existente',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la posición a modificar'
+        },
+        {
+            'name': 'posicion',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'tag_id': {'type': 'integer', 'description': 'ID del tag UWB'},
+                    'x': {'type': 'integer', 'description': 'Coordenada X en el plano del taller (cm)'},
+                    'y': {'type': 'integer', 'description': 'Coordenada Y en el plano del taller (cm)'},
+                    'zona_id': {'type': 'integer', 'description': 'ID de la zona donde se encuentra el tag'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Posición actualizada correctamente',
+            'schema': {'$ref': '#/definitions/Posicion'}
+        },
+        404: {
+            'description': 'Posición no encontrada'
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def update_posicion(id):
     posicion = Posicion.query.get_or_404(id)
     data = request.json
@@ -107,6 +247,28 @@ def update_posicion(id):
 
 # Eliminar una posición
 @posicion_bp.route('/<int:id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['posiciones'],
+    'summary': 'Eliminar una posición',
+    'description': 'Elimina permanentemente una posición del sistema',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la posición a eliminar'
+        }
+    ],
+    'responses': {
+        204: {
+            'description': 'Posición eliminada correctamente (sin contenido)'
+        },
+        404: {
+            'description': 'Posición no encontrada'
+        }
+    }
+})
 def delete_posicion(id):
     posicion = Posicion.query.get_or_404(id)
     db.session.delete(posicion)
@@ -116,6 +278,29 @@ def delete_posicion(id):
 
 # Obtener la última posición de un tag específico
 @posicion_bp.route('/tag/<int:tag_id>/ultima', methods=['GET'])
+@swag_from({
+    'tags': ['posiciones'],
+    'summary': 'Obtener última posición de un tag',
+    'description': 'Recupera la posición más reciente registrada para un tag específico',
+    'parameters': [
+        {
+            'name': 'tag_id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del tag'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Última posición del tag',
+            'schema': {'$ref': '#/definitions/Posicion'}
+        },
+        404: {
+            'description': 'Tag no encontrado o sin posiciones registradas'
+        }
+    }
+})
 def get_ultima_posicion(tag_id):
     # Verificar que el tag existe
     if not Tag.query.get(tag_id):

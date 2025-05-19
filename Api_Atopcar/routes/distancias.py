@@ -5,12 +5,36 @@ from models.tag import Tag
 from models.anchor import Anchor
 from datetime import datetime
 from routes.posiciones import triangular_posicion 
+from flasgger import swag_from
 
 # Crear el blueprint para las distancias
 distancia_bp = Blueprint('distancias', __name__, url_prefix='/api/distancias')
 
 # Obtener todas las distancias
 @distancia_bp.route('/', methods=['GET'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Obtener todas las distancias',
+    'description': 'Recupera la lista de todas las mediciones de distancia entre tags y anchors con opción de filtrado',
+    'parameters': [
+        {
+            'name': 'tag_id',
+            'in': 'query',
+            'type': 'integer',
+            'required': False,
+            'description': 'Filtrar por ID del tag'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de mediciones de distancia',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Distancia'}
+            }
+        }
+    }
+})
 def get_all_distancias():
     # Filtrar por tag_id si se proporciona
     tag_id = request.args.get('tag_id', type=int)
@@ -25,12 +49,73 @@ def get_all_distancias():
 
 # Obtener una distancia específica
 @distancia_bp.route('/<int:id>', methods=['GET'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Obtener una distancia específica',
+    'description': 'Recupera los detalles de una medición de distancia por su ID',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la medición de distancia'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Detalles de la medición de distancia',
+            'schema': {'$ref': '#/definitions/Distancia'}
+        },
+        404: {
+            'description': 'Medición no encontrada'
+        }
+    }
+})
 def get_distancia(id):
     distancia = Distancia.query.get_or_404(id)
     return jsonify(distancia.to_dict())
 
 # Crear una nueva distancia
 @distancia_bp.route('/', methods=['POST'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Crear una nueva medición de distancia',
+    'description': 'Registra una nueva medición de distancia entre un tag y hasta tres anchors',
+    'parameters': [
+        {
+            'name': 'distancia',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'tag_id': {'type': 'integer', 'description': 'ID del tag UWB'},
+                    'anchor1_id': {'type': 'integer', 'description': 'ID del primer anchor'},
+                    'anchor1_dist': {'type': 'number', 'format': 'float', 'description': 'Distancia al primer anchor (cm)'},
+                    'anchor2_id': {'type': 'integer', 'description': 'ID del segundo anchor'},
+                    'anchor2_dist': {'type': 'number', 'format': 'float', 'description': 'Distancia al segundo anchor (cm)'},
+                    'anchor3_id': {'type': 'integer', 'description': 'ID del tercer anchor'},
+                    'anchor3_dist': {'type': 'number', 'format': 'float', 'description': 'Distancia al tercer anchor (cm)'}
+                },
+                'required': ['tag_id']
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Distancia creada exitosamente',
+            'schema': {'$ref': '#/definitions/Distancia'}
+        },
+        200: {
+            'description': 'Distancia existente actualizada',
+            'schema': {'$ref': '#/definitions/Distancia'}
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def create_distancia():
     data = request.json
     
@@ -98,6 +183,49 @@ def create_distancia():
 
 # Actualizar una distancia
 @distancia_bp.route('/<int:id>', methods=['PUT'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Actualizar una medición de distancia',
+    'description': 'Modifica los datos de una medición de distancia existente',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la medición de distancia'
+        },
+        {
+            'name': 'distancia',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'tag_id': {'type': 'integer', 'description': 'ID del tag UWB'},
+                    'anchor1_id': {'type': 'integer', 'description': 'ID del primer anchor'},
+                    'anchor1_dist': {'type': 'number', 'format': 'float', 'description': 'Distancia al primer anchor (cm)'},
+                    'anchor2_id': {'type': 'integer', 'description': 'ID del segundo anchor'},
+                    'anchor2_dist': {'type': 'number', 'format': 'float', 'description': 'Distancia al segundo anchor (cm)'},
+                    'anchor3_id': {'type': 'integer', 'description': 'ID del tercer anchor'},
+                    'anchor3_dist': {'type': 'number', 'format': 'float', 'description': 'Distancia al tercer anchor (cm)'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Distancia actualizada correctamente',
+            'schema': {'$ref': '#/definitions/Distancia'}
+        },
+        404: {
+            'description': 'Distancia no encontrada'
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def update_distancia(id):
     distancia = Distancia.query.get_or_404(id)
     data = request.json
@@ -150,6 +278,28 @@ def update_distancia(id):
 
 # Eliminar una distancia
 @distancia_bp.route('/<int:id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Eliminar una medición de distancia',
+    'description': 'Elimina permanentemente una medición de distancia del sistema',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID de la medición de distancia a eliminar'
+        }
+    ],
+    'responses': {
+        204: {
+            'description': 'Distancia eliminada correctamente (sin contenido)'
+        },
+        404: {
+            'description': 'Distancia no encontrada'
+        }
+    }
+})
 def delete_distancia(id):
     distancia = Distancia.query.get_or_404(id)
     db.session.delete(distancia)
@@ -159,6 +309,29 @@ def delete_distancia(id):
 
 # Obtener la última distancia para un tag específico
 @distancia_bp.route('/tag/<int:tag_id>', methods=['GET'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Obtener distancia por tag',
+    'description': 'Recupera la última medición de distancia para un tag específico',
+    'parameters': [
+        {
+            'name': 'tag_id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del tag'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Medición de distancia para el tag',
+            'schema': {'$ref': '#/definitions/Distancia'}
+        },
+        404: {
+            'description': 'No se encontraron mediciones para este tag'
+        }
+    }
+})
 def get_by_tag(tag_id):
     distancia = Distancia.query.filter_by(tag_id=tag_id).first_or_404()
     return jsonify(distancia.to_dict())
@@ -167,6 +340,64 @@ def get_by_tag(tag_id):
 
 # Registrar distancias desde un dispositivo
 @distancia_bp.route('/registrar', methods=['POST'])
+@swag_from({
+    'tags': ['distancias'],
+    'summary': 'Registrar distancias desde dispositivo',
+    'description': 'Endpoint para recibir mediciones directamente desde dispositivos UWB',
+    'parameters': [
+        {
+            'name': 'datos',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'tag': {'type': 'string', 'description': 'Código del tag UWB'},
+                    'anchors': {
+                        'type': 'array',
+                        'description': 'Lista de anchors con sus distancias',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'shortAddres': {'type': 'string', 'description': 'Nombre del anchor'},
+                                'distancia': {'type': 'string', 'description': 'Distancia en metros'}
+                            }
+                        }
+                    }
+                },
+                'required': ['tag', 'anchors']
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Distancias registradas correctamente',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'mensaje': {'type': 'string'},
+                    'data': {'$ref': '#/definitions/Distancia'}
+                }
+            }
+        },
+        200: {
+            'description': 'Distancias actualizadas o sin cambios significativos',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'mensaje': {'type': 'string'},
+                    'data': {'$ref': '#/definitions/Distancia'}
+                }
+            }
+        },
+        400: {
+            'description': 'Error en el formato de datos'
+        },
+        404: {
+            'description': 'Tag o anchor no encontrado'
+        }
+    }
+})
 def registrar_distancias():
     data = request.json
     

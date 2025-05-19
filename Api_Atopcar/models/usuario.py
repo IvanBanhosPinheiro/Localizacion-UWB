@@ -1,6 +1,27 @@
 from extensions import db
 
 class Usuario(db.Model):
+    """
+    Modelo Usuario para gestionar las cuentas de acceso al sistema
+    ---
+    properties:
+      id:
+        type: integer
+        description: Identificador único del usuario
+      username:
+        type: string
+        description: Nombre de usuario único para iniciar sesión
+      nombre_completo:
+        type: string
+        description: Nombre y apellidos del usuario
+      rol:
+        type: string
+        description: Nivel de acceso y permisos del usuario
+        enum: [administrador, supervisor, técnico, recepcionista]
+      activo:
+        type: boolean
+        description: Indica si la cuenta de usuario está habilitada
+    """
     __tablename__ = 'usuarios'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

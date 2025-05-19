@@ -1,6 +1,26 @@
 from extensions import db
 
 class Zona(db.Model):
+    """
+    Modelo Zona para representar áreas específicas dentro de los talleres
+    ---
+    properties:
+      id:
+        type: integer
+        description: Identificador único de la zona
+      nombre:
+        type: string
+        description: Nombre descriptivo de la zona
+      tipo:
+        type: string
+        description: Clasificación de la zona (recepción, taller, pintura, etc.)
+      color_hex:
+        type: string
+        description: Código de color hexadecimal para representar la zona en el plano
+      taller_id:
+        type: integer
+        description: ID del taller al que pertenece esta zona
+    """
     __tablename__ = 'zonas'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

@@ -4,24 +4,91 @@ from models.taller import Taller
 from models.zona import Zona
 from models.anchor import Anchor
 from sqlalchemy import func
+from flasgger import swag_from
 
 # Crear el blueprint para los talleres
 taller_bp = Blueprint('talleres', __name__, url_prefix='/api/talleres')
 
 # Obtener todos los talleres
 @taller_bp.route('/', methods=['GET'])
+@swag_from({
+    'tags': ['talleres'],
+    'summary': 'Obtener todos los talleres',
+    'description': 'Recupera la lista completa de talleres registrados en el sistema',
+    'responses': {
+        200: {
+            'description': 'Lista de talleres',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Taller'}
+            }
+        }
+    }
+})
 def get_all_talleres():
     talleres = Taller.query.all()
     return jsonify([taller.to_dict() for taller in talleres])
 
 # Obtener un taller específico
 @taller_bp.route('/<int:id>', methods=['GET'])
+@swag_from({
+    'tags': ['talleres'],
+    'summary': 'Obtener un taller específico',
+    'description': 'Recupera los detalles de un taller por su ID',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del taller'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Detalles del taller',
+            'schema': {'$ref': '#/definitions/Taller'}
+        },
+        404: {
+            'description': 'Taller no encontrado'
+        }
+    }
+})
 def get_taller(id):
     taller = Taller.query.get_or_404(id)
     return jsonify(taller.to_dict())
 
 # Crear un nuevo taller
 @taller_bp.route('/', methods=['POST'])
+@swag_from({
+    'tags': ['talleres'],
+    'summary': 'Crear un nuevo taller',
+    'description': 'Registra un nuevo taller en el sistema',
+    'parameters': [
+        {
+            'name': 'taller',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nombre': {'type': 'string', 'description': 'Nombre del taller o instalación'},
+                    'svg_plano': {'type': 'string', 'description': 'Representación SVG del plano del taller'}
+                },
+                'required': ['nombre']
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Taller creado exitosamente',
+            'schema': {'$ref': '#/definitions/Taller'}
+        },
+        400: {
+            'description': 'Error en los datos enviados'
+        }
+    }
+})
 def create_taller():
     data = request.json
     
@@ -41,6 +108,41 @@ def create_taller():
 
 # Actualizar un taller
 @taller_bp.route('/<int:id>', methods=['PUT'])
+@swag_from({
+    'tags': ['talleres'],
+    'summary': 'Actualizar un taller existente',
+    'description': 'Modifica los datos de un taller específico',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del taller a modificar'
+        },
+        {
+            'name': 'taller',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nombre': {'type': 'string', 'description': 'Nombre del taller o instalación'},
+                    'svg_plano': {'type': 'string', 'description': 'Representación SVG del plano del taller'}
+                }
+            }
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Taller actualizado correctamente',
+            'schema': {'$ref': '#/definitions/Taller'}
+        },
+        404: {
+            'description': 'Taller no encontrado'
+        }
+    }
+})
 def update_taller(id):
     taller = Taller.query.get_or_404(id)
     data = request.json
@@ -57,6 +159,31 @@ def update_taller(id):
 
 # Eliminar un taller
 @taller_bp.route('/<int:id>', methods=['DELETE'])
+@swag_from({
+    'tags': ['talleres'],
+    'summary': 'Eliminar un taller',
+    'description': 'Elimina permanentemente un taller del sistema si no tiene elementos asociados',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del taller a eliminar'
+        }
+    ],
+    'responses': {
+        204: {
+            'description': 'Taller eliminado correctamente (sin contenido)'
+        },
+        400: {
+            'description': 'No se puede eliminar el taller porque tiene elementos asociados'
+        },
+        404: {
+            'description': 'Taller no encontrado'
+        }
+    }
+})
 def delete_taller(id):
     taller = Taller.query.get_or_404(id)
     
@@ -78,6 +205,32 @@ def delete_taller(id):
 
 # Obtener todas las zonas de un taller
 @taller_bp.route('/<int:id>/zonas', methods=['GET'])
+@swag_from({
+    'tags': ['talleres', 'zonas'],
+    'summary': 'Obtener zonas de un taller',
+    'description': 'Recupera todas las zonas asociadas a un taller específico',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del taller'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de zonas del taller',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Zona'}
+            }
+        },
+        404: {
+            'description': 'Taller no encontrado'
+        }
+    }
+})
 def get_taller_zonas(id):
     # Verificar que el taller existe
     Taller.query.get_or_404(id)
@@ -87,6 +240,39 @@ def get_taller_zonas(id):
 
 # Obtener todos los anchors de un taller
 @taller_bp.route('/<int:id>/anchors', methods=['GET'])
+@swag_from({
+    'tags': ['talleres', 'anchors'],
+    'summary': 'Obtener anchors de un taller',
+    'description': 'Recupera todos los dispositivos UWB fijos asociados a un taller',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del taller'
+        },
+        {
+            'name': 'activo',
+            'in': 'query',
+            'type': 'boolean',
+            'required': False,
+            'description': 'Filtrar por estado activo/inactivo (true/false)'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Lista de anchors del taller',
+            'schema': {
+                'type': 'array',
+                'items': {'$ref': '#/definitions/Anchor'}
+            }
+        },
+        404: {
+            'description': 'Taller no encontrado'
+        }
+    }
+})
 def get_taller_anchors(id):
     # Verificar que el taller existe
     Taller.query.get_or_404(id)
@@ -105,6 +291,43 @@ def get_taller_anchors(id):
 
 # Obtener estadísticas del taller
 @taller_bp.route('/<int:id>/stats', methods=['GET'])
+@swag_from({
+    'tags': ['talleres'],
+    'summary': 'Obtener estadísticas del taller',
+    'description': 'Recupera información estadística sobre un taller específico',
+    'parameters': [
+        {
+            'name': 'id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID del taller'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Estadísticas del taller',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer', 'description': 'ID del taller'},
+                    'zonas': {'type': 'integer', 'description': 'Número de zonas'},
+                    'anchors': {
+                        'type': 'object',
+                        'properties': {
+                            'total': {'type': 'integer', 'description': 'Número total de anchors'},
+                            'activos': {'type': 'integer', 'description': 'Número de anchors activos'},
+                            'inactivos': {'type': 'integer', 'description': 'Número de anchors inactivos'}
+                        }
+                    }
+                }
+            }
+        },
+        404: {
+            'description': 'Taller no encontrado'
+        }
+    }
+})
 def get_taller_stats(id):
     # Verificar que el taller existe
     Taller.query.get_or_404(id)
