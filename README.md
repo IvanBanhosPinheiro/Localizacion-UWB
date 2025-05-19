@@ -19,12 +19,12 @@ Este proyecto permite la localización en tiempo real de vehículos dentro de un
 
 // Estructura general
 
-- `anchor.txt` → Código Arduino para anclas UWB fijas  
-- `tag.txt` → Código Arduino para etiquetas móviles UWB  
+- `anchor.ino` → Código Arduino para anclas UWB fijas  
+- `tag.ino` → Código Arduino para etiquetas móviles UWB  
 - `link.cpp`, `link.h` → Gestión de enlaces UWB y promedio de medidas  
-- `script.txt` → Script SQL para crear y poblar la base de datos  
-- `Endpoints.docx` → Documentación de la API REST del servidor  
-- `dw1000_user_manual.pdf` → Manual técnico del módulo DW1000
+- `script.sql` → Script SQL para crear y poblar la base de datos  
+- `Atopcar.postman_collection.json` → Documentación de la API REST del servidor para postman  
+
 
 ---
 
@@ -40,16 +40,16 @@ Este proyecto permite la localización en tiempo real de vehículos dentro de un
 
 ## 🧪 Ejemplo de JSON enviado por un tag
 
-// Este es un ejemplo de estructura de datos enviada por el tag
-
-// {
-//   "links": [
-//     { "A": "A01", "R": "2.1" },
-//     { "A": "A02", "R": "1.7" },
-//     { "A": "A03", "R": "3.4" }
-//   ]
-// }
-
+```json
+{
+  "tag": "T01",
+  "links": [
+    { "A": "A01", "R": "2.1" },
+    { "A": "A02", "R": "1.7" },
+    { "A": "A03", "R": "3.4" }
+  ]
+}
+```
 ---
 
 ## 🛠️ Endpoints Destacados
@@ -80,13 +80,6 @@ Este proyecto permite la localización en tiempo real de vehículos dentro de un
 - `POST /vehicles` – Registrar nuevo
 - `PUT /vehicles/:id/assign-tag` – Asignar tag a vehículo
 - `GET /vehicles/:id/position` – Obtener posición actual
-
-> Para el listado completo de rutas revisa `Endpoints.docx`
-
----
-
-
----
 
 ## 📚 Documentación de la API
 
@@ -156,11 +149,13 @@ temp->range[0] = (range + temp->range[1] + temp->range[2]) / 3;
 
 ## 🧑‍💻 Autores
 
-Repositorio: https://github.com/IvanBanhosPinheiro
-https://github.com/albarf1
-https://github.com/Iago-3004
-https://github.com/javier-feijoo
-https://github.com/Jsobrino98
+Este proyecto ha sido desarrollado por:
+
+- [Ivan Baños Piñeiro](https://github.com/IvanBanhosPinheiro)
+- [Alba Rodríguez Fernández](https://github.com/albarf1)
+- [Iago Malvido Guzmán](https://github.com/Iago-3004)
+- [Javier Feijóo López](https://github.com/javier-feijoo)
+- [Jorge Sobrino Mojón](https://github.com/Jsobrino98)
 
 ---
 
